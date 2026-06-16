@@ -4,10 +4,10 @@ const bcrypt = require('bcrypt');
 
 
 const registerUser = async (req, res) => {
-    const { name, email, password } = req.body;
+    const { username, email, password } = req.body;
 
-    if (!name || !email || !password) {
-        return res.status(400).json({ error: 'Name, email, and password are required' });
+    if (!username || !email || !password) {
+        return res.status(400).json({ error: 'Username, email, and password are required' });
     }
 
     try {
@@ -21,7 +21,7 @@ const registerUser = async (req, res) => {
         const hashedPassword = await bcrypt.hash(password, saltRounds);
 
         // create new user
-        const newUser = await User.create(name, email, hashedPassword);
+        const newUser = await User.create(username, email, hashedPassword);
         res.status(201).json(newUser);
         
     } catch (err) {

@@ -11,4 +11,6 @@ router.get('/login', AuthController.getLogin);
 // route for handling login submission
 router.post('/login', AuthController.postLogin);
 
+router.get('/signup', AuthController.getSignup);
+
 module.exports = router;

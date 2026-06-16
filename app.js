@@ -8,6 +8,7 @@ const PORT = process.env.PORT || 3000;
 
 const app = express();
 app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 
 // Configure Express to use EJS
 app.set('view engine', 'ejs');

@@ -5,6 +5,7 @@ const { getDb } = require('../utils/database');
 
 const getLogin = (req, res) => {
     res.render('auth/login', { title: 'Login Page' });
+
 };
 
 const postLogin = async (req, res) => {
@@ -25,4 +26,8 @@ const postLogin = async (req, res) => {
     }
 };
 
-module.exports = { getLogin, postLogin };
+const getSignup = (req, res) =>{
+    res.render('auth/signup', { title: 'Signup Page' });
+}
+
+module.exports = { getLogin, postLogin, getSignup };
