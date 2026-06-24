@@ -5,10 +5,7 @@ const router = express.Router();
 // import user controller
 const UserController = require('../controllers/userControllers');
 
-// route for creating a new user
-router.post('/register', UserController.registerUser);
-
-// route for showing all users 
+// route for showing all users
 router.get('/', UserController.getAllUsers);
 
 module.exports = router;
