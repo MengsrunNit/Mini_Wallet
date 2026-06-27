@@ -24,7 +24,8 @@ const postLogin = async (req, res) => {
             return res.status(401).json({ error: 'Invalid email or password' });
         }
 
-        res.json({ message: 'Login successful', user });
+        req.session.user = { id: user.id, username: user.username, email: user.email };
+        res.redirect('/dashboard');
     } catch (err) {
         console.error('Error during login:', err);
         res.status(500).json({ error: 'Failed to login' });
@@ -49,7 +50,7 @@ const postSignup = async (req, res) => {
         }
 
         const hashedPassword = await bcrypt.hash(password, 10);
-        await User.create(username, email, hashedPassword);
+        await User.createUser(username, email, hashedPassword);
         res.render('auth/login', { title: 'Login Page' });
     } catch (err) {
         console.error('Error during signup:', err);

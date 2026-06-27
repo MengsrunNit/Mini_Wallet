@@ -6,6 +6,11 @@ const router = express.Router();
 const UserController = require('../controllers/userControllers');
 
 // route for showing all users
-router.get('/', UserController.getAllUsers);
+
+
+
+router.get('/id/:id', UserController.findUserById);
+
+router.get('/email/:email', UserController.findUserByEmail); 
 
 module.exports = router;

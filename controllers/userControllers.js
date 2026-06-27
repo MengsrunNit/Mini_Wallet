@@ -1,14 +1,33 @@
 // controller for user-related operations
 const User = require('../models/users');
 
-const getAllUsers = async (req, res) => {
+
+// find user information by id 
+const findUserById = async (req, res) => {
     try {
-        const users = await User.getAllUsers();
-        res.json(users);
+        const user = await User.findById(req.params.id);
+        if (!user) {
+            return res.status(404).json({ error: 'User not found' });
+        }
+        res.json(user);
     } catch (err) {
-        console.error('Error fetching users:', err);
-        res.status(500).json({ error: 'Failed to fetch users' });
+        console.error('Error fetching user:', err);
+        res.status(500).json({ error: 'Failed to fetch user' });
     }
 };
 
-module.exports = { getAllUsers };
+
+const findUserByEmail = async (req, res) => {
+    try {
+        const user = await User.findByEmail(req.params.email);
+        if (!user) {
+            return res.status(404).json({ error: 'User not found' });
+        }
+        res.json(user);
+    } catch (err) {
+        console.error('Error fetching user by email:', err);
+        res.status(500).json({ error: 'Failed to fetch user by email' });
+    }
+};
+
+module.exports = { findUserById, findUserByEmail };

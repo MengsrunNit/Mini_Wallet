@@ -1,41 +1,40 @@
-require('dotenv').config();
-const express = require('express');
-const path = require('path');
+require("dotenv").config();
+
+const express = require("express");
+const path = require("path");
 const session = require("express-session");
 const pgSession = require("connect-pg-simple")(session);
-const { postgresConnect, ensureUsersTable, getDb } = require('./utils/database');
-const UserRoute = require('./routes/users');
-const AuthRoute = require('./routes/auth');
 
+const { postgresConnect, getDb } = require("./utils/database");
 
-const PORT = process.env.PORT || 3000;
+const userRoutes = require("./routes/users");
+const authRoutes = require("./routes/auth");
+const dashboardRoutes = require("./routes/dashboard");
+
 
 const app = express();
+const PORT = process.env.PORT || 3000;
 
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
+function setupViewEngine(app) {
+  app.set("view engine", "ejs");
+  app.set("views", path.join(__dirname, "views"));
+}
 
-// Configure Express to use EJS
-app.set('view engine', 'ejs');
-app.set('views', path.join(__dirname, 'views'));
+function setupMiddleware(app) {
+  app.use(express.json());
+  app.use(express.urlencoded({ extended: true }));
+  app.use(express.static(path.join(__dirname, "public")));
+}
 
-// Serve files from public/
-app.use(express.static(path.join(__dirname, 'public')));
+function setupSession(app) {
+  const sessionStore = new pgSession({
+    pool: getDb(),
+    tableName: "sessions",
+    createTableIfMissing: true,
+  });
 
-
-// start the server after connecting to the database
-const start = async () => {
-  try {
-    await postgresConnect();
-    await ensureUsersTable();
-
-    const sessionStore = new pgSession({
-      pool: getDb(),
-      tableName: "sessions",
-      createTableIfMissing: true,
-    });
-
-    app.use(session({
+  app.use(
+    session({
       store: sessionStore,
       secret: process.env.SESSION_SECRET,
       resave: false,
@@ -44,27 +43,41 @@ const start = async () => {
         httpOnly: true,
         secure: false,
         sameSite: "lax",
-        maxAge: 1000 * 60 * 60
-      }
-    }));
+        maxAge: 1000 * 60 * 60,
+      },
+    })
+  );
+}
 
-    // Handle a simple route and render your template
-    app.get('/', (req, res) => {
-        // Renders the views/index.ejs file and passes an object of dynamic data
-        res.render('index', { title: 'My Express App', user: 'Developer' });
+function setupRoutes(app) {
+  app.get("/", (req, res) => {
+    res.render("index", {
+      title: "My Express App",
+      user: req.session?.user || null,
     });
+  });
 
-    //router
-    app.use('/users', UserRoute);
-    app.use('/auth', AuthRoute);
+  app.use("/users", userRoutes);
+  app.use("/auth", authRoutes);
+  app.use("/dashboard", dashboardRoutes);
+}
 
+async function startServer() {
+  try {
+    await postgresConnect();
 
-    app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+    setupViewEngine(app);
+    setupMiddleware(app);
+    setupSession(app);
+    setupRoutes(app);
+
+    app.listen(PORT, () => {
+      console.log(`Server running on port ${PORT}`);
+    });
   } catch (err) {
-    console.error('Failed to start server:', err);
+    console.error("Failed to start server:", err);
     process.exit(1);
   }
-};
+}
 
-start();
-
+startServer();
