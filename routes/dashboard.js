@@ -15,12 +15,16 @@ router.get("/", isLoggedIn, async (req, res) => {
     res.render("dashboard/index", {
       user: req.session.user,
       wallet: wallet || null,
+      error: req.query.error || null,
+      success: req.query.success || null,
     });
   } catch (err) {
     console.error("Error loading dashboard:", err);
     res.render("dashboard/index", {
       user: req.session.user,
       wallet: null,
+      error: req.query.error || null,
+      success: req.query.success || null,
     });
   }
 });
