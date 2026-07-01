@@ -7,10 +7,10 @@ const UserController = require('../controllers/userControllers');
 
 // route for showing all users
 
-
-
 router.get('/id/:id', UserController.findUserById);
 
-router.get('/email/:email', UserController.findUserByEmail); 
+router.get('/email/:email', UserController.findUserByEmail);
+
+router.delete('/id/:id', UserController.deleteUser);
 
 module.exports = router;

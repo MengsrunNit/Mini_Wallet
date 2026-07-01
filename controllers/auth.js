@@ -2,6 +2,7 @@
 const express = require('express');
 const bcrypt = require('bcrypt');
 const User = require('../models/users');
+const Wallet = require('../models/wallet');
 
 const getLogin = (req, res) => {
     res.render('auth/login', { title: 'Login Page' });
@@ -24,7 +25,7 @@ const postLogin = async (req, res) => {
             return res.status(401).json({ error: 'Invalid email or password' });
         }
 
-        req.session.user = { id: user.id, username: user.username, email: user.email };
+        req.session.user = { id: user.id, user_id: user.user_id, name: user.name, email: user.email };
         res.redirect('/dashboard');
     } catch (err) {
         console.error('Error during login:', err);
@@ -50,7 +51,8 @@ const postSignup = async (req, res) => {
         }
 
         const hashedPassword = await bcrypt.hash(password, 10);
-        await User.createUser(username, email, hashedPassword);
+        const newUser = await User.createUser(username, email, hashedPassword);
+        await Wallet.createWallet(newUser.user_id);
         res.render('auth/login', { title: 'Login Page' });
     } catch (err) {
         console.error('Error during signup:', err);

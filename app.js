@@ -10,6 +10,8 @@ const { postgresConnect, getDb } = require("./utils/database");
 const userRoutes = require("./routes/users");
 const authRoutes = require("./routes/auth");
 const dashboardRoutes = require("./routes/dashboard");
+const wallet = require("./routes/wallet");
+const transferRoutes = require("./routes/transfer");
 
 
 const app = express();
@@ -60,6 +62,8 @@ function setupRoutes(app) {
   app.use("/users", userRoutes);
   app.use("/auth", authRoutes);
   app.use("/dashboard", dashboardRoutes);
+  app.use('/wallet', wallet);
+  app.use('/transfer', transferRoutes);
 }
 
 async function startServer() {

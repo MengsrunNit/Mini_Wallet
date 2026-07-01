@@ -44,6 +44,79 @@ const Wallet = {
         );
         return result.rows[0];
     },
+
+    //deposit to the wallet 
+    async deposit(walletId, amount) {
+        const db = getDb();
+        const result = await db.query(
+            `UPDATE wallets SET balance = balance + $1, updated_at = CURRENT_TIMESTAMP
+             WHERE wallet_id = $2 RETURNING *`,
+            [amount, walletId]
+        );
+        return result.rows[0];
+    },
+
+    // withdraw from the wallet
+    async withdraw(walletId, amount) {
+        const db = getDb();
+        const result = await db.query(
+            `UPDATE wallets SET balance = balance - $1, updated_at = CURRENT_TIMESTAMP
+             WHERE wallet_id = $2 AND balance >= $1 RETURNING *`,
+            [amount, walletId]
+        );
+        return result.rows[0];
+    },
+
+    async findById(walletId) {
+        const db = getDb();
+        const result = await db.query(
+            'SELECT * FROM wallets WHERE wallet_id = $1',
+            [walletId]
+        );
+        return result.rows[0];
+    },
+
+    // move funds between two wallets atomically
+    async transferFunds(fromWalletId, toWalletId, amount) {
+        const db = getDb();
+        const client = await db.connect();
+        try {
+            await client.query('BEGIN');
+
+            // lock both rows in a consistent order to avoid deadlocks with concurrent transfers
+            const [firstId, secondId] = [fromWalletId, toWalletId].sort();
+            await client.query('SELECT 1 FROM wallets WHERE wallet_id = $1 FOR UPDATE', [firstId]);
+            await client.query('SELECT 1 FROM wallets WHERE wallet_id = $1 FOR UPDATE', [secondId]);
+
+            const withdrawResult = await client.query(
+                `UPDATE wallets SET balance = balance - $1, updated_at = CURRENT_TIMESTAMP
+                 WHERE wallet_id = $2 AND balance >= $1 RETURNING *`,
+                [amount, fromWalletId]
+            );
+            if (withdrawResult.rows.length === 0) {
+                await client.query('ROLLBACK');
+                return null;
+            }
+
+            const depositResult = await client.query(
+                `UPDATE wallets SET balance = balance + $1, updated_at = CURRENT_TIMESTAMP
+                 WHERE wallet_id = $2 RETURNING *`,
+                [amount, toWalletId]
+            );
+            if (depositResult.rows.length === 0) {
+                await client.query('ROLLBACK');
+                return null;
+            }
+
+            await client.query('COMMIT');
+            return { from: withdrawResult.rows[0], to: depositResult.rows[0] };
+        } catch (err) {
+            await client.query('ROLLBACK');
+            throw err;
+        } finally {
+            client.release();
+        }
+    }
 };
 
 module.exports = Wallet;

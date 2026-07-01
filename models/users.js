@@ -41,7 +41,7 @@ const User = {
         const result = await db.query(query, values);
         return result.rows[0];  
     }, 
-    // find by id 
+    // find by id
     async findById(id) {
         const db = getDb();
         const query = `
@@ -49,9 +49,20 @@ const User = {
         `;
         const values = [id];
         const result = await db.query(query, values);
-        return result.rows[0];  
+        return result.rows[0];
+    },
+    // delete by id
+    async deleteById(id) {
+        const db = getDb();
+        const query = `
+            DELETE FROM users WHERE user_id = $1
+            RETURNING *
+        `;
+        const values = [id];
+        const result = await db.query(query, values);
+        return result.rows[0];
     }
-    
+
 }
 
 module.exports = User;

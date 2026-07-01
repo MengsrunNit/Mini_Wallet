@@ -16,5 +16,19 @@ router.get('/signup', AuthController.getSignup);
 router.post('/signup', AuthController.postSignup);
 
 
+// route for remove user session and logout
+router.post('/logout', (req, res) => {
+    req.session.destroy((err) => {
+        if (err) {
+            console.error('Error destroying session:', err);
+            return res.status(500).json({ error: 'Failed to logout' });
+        }
+        res.redirect('/auth/login');
+    });
+});
+
+
+
+
 
 module.exports = router;
